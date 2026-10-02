@@ -1,0 +1,7 @@
+# Resource Pack fuer das Tresor-Design (Block-Modell und Zahlenfeld).
+# Ohne das Pack sind Tresore normale Eisenbloecke und das Zahlenfeld ein schlichtes Inventar.
+resource-pack:
+  send: true
+  required: false
+  url: "https://github.com/bfdev-mc/Tresor/releases/download/v1.1.0/TresorPack.zip"
+  sha1: "4ccf249470586805973d27cc53db9bb910f9931a"

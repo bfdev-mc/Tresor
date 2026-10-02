@@ -10,8 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.type.Vault;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,10 +38,14 @@ final class TresorListener implements Listener {
 
     private final TresorPlugin plugin;
     private final VaultManager manager;
+    private final VaultDisplays displays;
+    private final java.util.Set<UUID> packLoaded;
 
-    TresorListener(TresorPlugin plugin, VaultManager manager) {
+    TresorListener(TresorPlugin plugin, VaultManager manager, VaultDisplays displays, java.util.Set<UUID> packLoaded) {
         this.plugin = plugin;
         this.manager = manager;
+        this.displays = displays;
+        this.packLoaded = packLoaded;
     }
 
     private static void msg(Player p, String text, NamedTextColor color) {
@@ -86,26 +88,27 @@ final class TresorListener implements Listener {
             return;
         }
 
-        Vault data = (Vault) Material.VAULT.createBlockData();
-        ((Directional) data).setFacing(look.getOppositeFace());
-        data.setOminous(large);
-        first.setBlockData(data, false);
+        // Der Block selbst ist Eisen (Abbauzeit, Partikel, Sound); das Aussehen kommt vom ItemDisplay.
+        first.setType(Material.IRON_BLOCK, false);
 
         List<String> keys = new ArrayList<>();
         keys.add(VaultManager.key(first));
         if (second != null) {
-            second.setBlockData(data, false);
+            second.setType(Material.IRON_BLOCK, false);
             keys.add(VaultManager.key(second));
         }
 
         TresorVault vault = new TresorVault(UUID.randomUUID(), large, keys);
+        vault.front = look.getOppositeFace();
         manager.register(vault);
-        plugin.getServer().getScheduler().runTask(plugin, () -> p.openInventory(new KeypadHolder(vault, true).getInventory()));
+        displays.ensure(vault);
+        plugin.getServer().getScheduler().runTask(plugin, () -> p.openInventory(new KeypadHolder(vault, true, packLoaded.contains(p.getUniqueId())).getInventory()));
     }
 
     /** Bricht das Platzieren ab, wenn kein Code gesetzt wurde. */
     private void cancelPending(TresorVault vault, Player p) {
         manager.unregister(vault);
+        displays.remove(vault);
         removeBlocks(vault);
         if (p.getGameMode() != GameMode.CREATIVE) {
             giveBack(p, VaultItems.create(plugin, vault.large));
@@ -153,7 +156,7 @@ final class TresorListener implements Listener {
                     NamedTextColor.RED);
             return;
         }
-        p.openInventory(new KeypadHolder(vault, false).getInventory());
+        p.openInventory(new KeypadHolder(vault, false, packLoaded.contains(p.getUniqueId())).getInventory());
     }
 
     private void openVault(Player p, TresorVault vault) {
@@ -279,6 +282,7 @@ final class TresorListener implements Listener {
             drop.getWorld().dropItemNaturally(drop, VaultItems.create(plugin, vault.large));
         }
         manager.unregister(vault);
+        displays.remove(vault);
         for (String k : vault.blocks) {
             if (!k.equals(VaultManager.key(e.getBlock()))) {
                 String[] s = k.split(";");

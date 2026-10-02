@@ -29,6 +29,7 @@ final class VaultItems {
                         NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false),
                 Component.text("Beim Platzieren wird ein Code festgelegt.", NamedTextColor.DARK_GRAY)
                         .decoration(TextDecoration.ITALIC, false)));
+        meta.setItemModel(new NamespacedKey("tresor", large ? "safe_large_item" : "safe_small"));
         meta.getPersistentDataContainer().set(typeKey(plugin), PersistentDataType.STRING, large ? "large" : "small");
         item.setItemMeta(meta);
         return item;

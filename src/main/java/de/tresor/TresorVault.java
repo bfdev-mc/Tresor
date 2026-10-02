@@ -14,6 +14,8 @@ final class TresorVault {
     final boolean large;
     /** Bloecke im Format "welt;x;y;z". */
     final List<String> blocks;
+    /** Seite, auf der die Tuer sitzt. */
+    org.bukkit.block.BlockFace front = org.bukkit.block.BlockFace.SOUTH;
     String salt;
     String hash;
     ItemStack[] stored;

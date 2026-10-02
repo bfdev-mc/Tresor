@@ -42,6 +42,20 @@ final class VaultManager {
         return byBlock.get(key(b));
     }
 
+    /** Alle Tresore, die mindestens einen Block im Chunk haben. */
+    java.util.Set<TresorVault> inChunk(org.bukkit.Chunk c) {
+        java.util.Set<TresorVault> result = new java.util.HashSet<>();
+        String world = c.getWorld().getName();
+        for (Map.Entry<String, TresorVault> e : byBlock.entrySet()) {
+            String[] s = e.getKey().split(";");
+            if (s[0].equals(world) && (Integer.parseInt(s[1]) >> 4) == c.getX()
+                    && (Integer.parseInt(s[3]) >> 4) == c.getZ()) {
+                result.add(e.getValue());
+            }
+        }
+        return result;
+    }
+
     boolean isVault(Block b) {
         return byBlock.containsKey(key(b));
     }
@@ -106,6 +120,7 @@ final class VaultManager {
             String p = "vaults." + v.id;
             yml.set(p + ".large", v.large);
             yml.set(p + ".blocks", v.blocks);
+            yml.set(p + ".front", v.front.name());
             yml.set(p + ".salt", v.salt);
             yml.set(p + ".hash", v.hash);
             List<String> items = new ArrayList<>();
@@ -134,6 +149,7 @@ final class VaultManager {
             try {
                 TresorVault v = new TresorVault(UUID.fromString(id), s.getBoolean("large"),
                         new ArrayList<>(s.getStringList("blocks")));
+                v.front = org.bukkit.block.BlockFace.valueOf(s.getString("front", "SOUTH"));
                 v.salt = s.getString("salt");
                 v.hash = s.getString("hash");
                 List<String> items = s.getStringList("items");
