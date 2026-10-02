@@ -6,4 +6,4 @@ description: Code-gesicherte Tresore (klein = Kiste, gross = Doppelkiste)
 permissions:
   tresor.admin:
     description: Tresore ohne Code oeffnen und abbauen
-    default: op
+    default: false

@@ -60,7 +60,7 @@ final class KeypadHolder implements InventoryHolder {
         }
         for (int i = 0; i < DIGIT_SLOTS.length; i++) {
             int d = DIGITS[i];
-            inventory.setItem(DIGIT_SLOTS[i], item(Material.LIGHT_GRAY_CONCRETE, String.valueOf(d), "key_" + d, Math.max(d, 1)));
+            inventory.setItem(DIGIT_SLOTS[i], item(Material.LIGHT_GRAY_CONCRETE, String.valueOf(d), "key_" + d, 1));
         }
         inventory.setItem(CLEAR, item(Material.RED_CONCRETE, "Löschen", "key_clear", 1));
         inventory.setItem(OK, item(Material.LIME_CONCRETE, "Bestätigen", "key_ok", 1));
@@ -77,8 +77,11 @@ final class KeypadHolder implements InventoryHolder {
     void render() {
         for (int i = 0; i < 9; i++) {
             boolean on = i < entry.length();
-            ItemStack lcd = item(on ? Material.LIME_STAINED_GLASS_PANE : Material.BLACK_STAINED_GLASS_PANE,
-                    on ? "*" : " ", on ? "lcd_on" : "lcd_off", 1);
+            if (!on) {
+                inventory.setItem(i, custom ? null : item(Material.BLACK_STAINED_GLASS_PANE, " ", null, 1));
+                continue;
+            }
+            ItemStack lcd = item(Material.LIME_STAINED_GLASS_PANE, "*", "lcd_on", 1);
             ItemMeta meta = lcd.getItemMeta();
             meta.setHideTooltip(true);
             lcd.setItemMeta(meta);

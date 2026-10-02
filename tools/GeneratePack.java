@@ -37,11 +37,11 @@ public class GeneratePack {
     static final Path ASSETS = ROOT.resolve("assets/tresor");
 
     // Gunmetal-Palette
-    static final Color M0 = new Color(30, 33, 38), M1 = new Color(50, 54, 62), M2 = new Color(72, 78, 88),
-            M3 = new Color(98, 105, 117), M4 = new Color(132, 140, 153), M5 = new Color(172, 180, 192),
-            M6 = new Color(214, 220, 229);
-    static final Color GOLD0 = new Color(120, 84, 22), GOLD1 = new Color(176, 130, 40), GOLD2 = new Color(224, 182, 70),
-            GOLD3 = new Color(255, 232, 150);
+    static final Color M0 = new Color(28, 28, 28), M1 = new Color(48, 48, 48), M2 = new Color(70, 70, 70),
+            M3 = new Color(98, 98, 98), M4 = new Color(130, 130, 130), M5 = new Color(170, 170, 170),
+            M6 = new Color(214, 214, 214);
+    static final Color GOLD0 = new Color(74, 74, 74), GOLD1 = new Color(140, 140, 140), GOLD2 = new Color(190, 190, 190),
+            GOLD3 = new Color(238, 238, 238);
     static final Color RED = new Color(214, 54, 44), GREEN = new Color(80, 232, 120);
 
     // ------------------------------------------------------------------ Modell-Beschreibung
@@ -450,66 +450,56 @@ public class GeneratePack {
         return im;
     }
 
-    /** 176x186: Hintergrund eines 4-Reihen-Containers. */
+    /** 176x186: Hintergrund eines 4-Reihen-Containers (flach, neutral grau). */
     static BufferedImage keypadBackground() {
         int w = 176, h = 186;
         BufferedImage im = img(w, h);
         Graphics2D g = gfx(im);
-        g.setPaint(new GradientPaint(0, 0, new Color(58, 63, 72), 0, h, new Color(34, 37, 44)));
+        g.setPaint(new GradientPaint(0, 0, new Color(70, 70, 70), 0, h, new Color(46, 46, 46)));
         g.fill(new RoundRectangle2D.Double(0, 0, w, h, 8, 8));
-        g.setColor(new Color(10, 11, 14));
+        g.setColor(new Color(14, 14, 14));
         g.setStroke(new BasicStroke(1f));
         g.draw(new RoundRectangle2D.Double(0.5, 0.5, w - 1, h - 1, 8, 8));
-        g.setColor(alpha(GOLD1, 200));
-        g.draw(new RoundRectangle2D.Double(3.5, 3.5, w - 7, h - 7, 6, 6));
-        g.setColor(alpha(Color.WHITE, 28));
+        g.setColor(alpha(Color.WHITE, 40));
         g.draw(new RoundRectangle2D.Double(1.5, 1.5, w - 3, h - 3, 7, 7));
 
-        // Anzeige (Reihe 0): Display mit neun Mulden
-        g.setPaint(new GradientPaint(0, 16, new Color(9, 20, 14), 0, 37, new Color(18, 40, 28)));
+        // Anzeige (Reihe 0): neun Mulden
+        g.setColor(new Color(26, 26, 26));
         g.fill(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
-        g.setColor(new Color(0, 0, 0, 160));
-        g.draw(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
-        g.setColor(alpha(GREEN, 40));
-        g.draw(new RoundRectangle2D.Double(8, 18, 160, 18, 4, 4));
-        for (int c = 0; c < 9; c++) {
-            g.setColor(new Color(60, 120, 80, 90));
-            g.fill(new Ellipse2D.Double(8 + 18 * c + 6, 18 + 6, 6, 6));
-        }
-
-        // Tasten
-        int[] digitSlots = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24};
-        for (int s : digitSlots) {
-            button(g, 8 + 18 * (s % 9), 18 + 18 * (s / 9), new Color(86, 93, 106), new Color(52, 57, 66));
-        }
-        button(g, 8 + 18 * (30 % 9), 18 + 18 * (30 / 9), new Color(150, 58, 52), new Color(98, 34, 32));
-        button(g, 8 + 18 * (32 % 9), 18 + 18 * (32 / 9), new Color(52, 138, 78), new Color(30, 90, 52));
-
-        // Trennlinie + Spielerinventar
         g.setColor(alpha(Color.BLACK, 120));
-        g.fillRect(8, 98, w - 16, 1);
-        g.setColor(alpha(Color.WHITE, 30));
-        g.fillRect(8, 99, w - 16, 1);
+        g.draw(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
+        for (int c = 0; c < 9; c++) {
+            g.setColor(new Color(64, 64, 64));
+            g.fill(new Ellipse2D.Double(8 + 18 * c + 5.5, 18 + 5.5, 7, 7));
+        }
+
+        // Tasten: flach, ohne Schatten
+        int[] digitSlots = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24};
+        for (int s : digitSlots) button(g, 8 + 18 * (s % 9), 18 + 18 * (s / 9), new Color(92, 92, 92));
+        button(g, 8 + 18 * (30 % 9), 18 + 18 * (30 / 9), new Color(128, 62, 58));
+        button(g, 8 + 18 * (32 % 9), 18 + 18 * (32 / 9), new Color(56, 120, 76));
+
+        // Beschriftungsstreifen fuer das "Inventory"-Label des Clients
+        g.setColor(new Color(36, 36, 36));
+        g.fill(new RoundRectangle2D.Double(7, 90, 162, 11, 4, 4));
         for (int r = 0; r < 3; r++) for (int c = 0; c < 9; c++) slot(g, 8 + c * 18, 103 + r * 18);
         for (int c = 0; c < 9; c++) slot(g, 8 + c * 18, 161);
         g.dispose();
         return im;
     }
 
-    /** Taste: Item-Flaeche beginnt bei (x, y), 16x16. Zelle 18x18. */
-    static void button(Graphics2D g, int x, int y, Color top, Color bottom) {
-        g.setColor(alpha(Color.BLACK, 140));
-        g.fill(new RoundRectangle2D.Double(x - 1, y, 18, 18, 5, 5));
-        g.setPaint(new GradientPaint(0, y - 1, top, 0, y + 17, bottom));
-        g.fill(new RoundRectangle2D.Double(x - 1, y - 1, 18, 18, 5, 5));
-        g.setColor(alpha(Color.WHITE, 70));
-        g.draw(new RoundRectangle2D.Double(x - 0.5, y - 0.5, 17, 17, 5, 5));
+    /** Flache Taste: Item-Flaeche beginnt bei (x, y), 16x16. Zelle 18x18. */
+    static void button(Graphics2D g, int x, int y, Color fill) {
+        g.setColor(fill);
+        g.fill(new RoundRectangle2D.Double(x - 1, y - 1, 18, 18, 6, 6));
+        g.setColor(alpha(Color.WHITE, 46));
+        g.draw(new RoundRectangle2D.Double(x - 0.5, y - 0.5, 17, 17, 6, 6));
     }
 
     static void slot(Graphics2D g, int x, int y) {
-        g.setColor(new Color(20, 22, 27, 200));
+        g.setColor(new Color(30, 30, 30, 220));
         g.fill(new RoundRectangle2D.Double(x - 1, y - 1, 18, 18, 3, 3));
-        g.setColor(alpha(Color.WHITE, 38));
+        g.setColor(alpha(Color.WHITE, 30));
         g.draw(new RoundRectangle2D.Double(x - 0.5, y - 0.5, 17, 17, 3, 3));
     }
 
