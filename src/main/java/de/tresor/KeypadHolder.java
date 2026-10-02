@@ -23,9 +23,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 final class KeypadHolder implements InventoryHolder {
     static final int MIN_LENGTH = 4;
     static final int MAX_LENGTH = 9;
-    static final int CLEAR = 39, OK = 41, DISPLAY_START = 9;
-    /** Ziffern 1-9, dann 0 - in zwei Reihen zu je fuenf Tasten. */
-    static final int[] DIGIT_SLOTS = {20, 21, 22, 23, 24, 29, 30, 31, 32, 33};
+    static final int CLEAR = 39, OK = 41, DISPLAY_START = 0;
+    /** Klassisches Ziffernfeld: 1-2-3 / 4-5-6 / 7-8-9 / C-0-OK. */
+    static final int[] DIGIT_SLOTS = {12, 13, 14, 21, 22, 23, 30, 31, 32, 40};
     static final int[] DIGITS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 
     final TresorVault vault;

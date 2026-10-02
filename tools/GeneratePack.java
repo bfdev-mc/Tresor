@@ -334,7 +334,16 @@ public class GeneratePack {
         g.setColor(M0);
         g.draw(new RoundRectangle2D.Double(46, 16, 12, 38, 6, 6));
         rivet(g, 52, 11, 2.4, new Color(255, 140, 120), RED);
-        for (int[] p : new int[][] {{10, 10}, {10, 54}, {54, 58}}) rivet(g, p[0], p[1], 2, M5, M1);
+        for (int k = 0; k < 6; k++) {
+            rivet(g, 10 + k * 8.8, 9, 1.6, M5, M2);
+            rivet(g, 10 + k * 8.8, 55, 1.6, M5, M2);
+        }
+        // Typenschild
+        g.setColor(M1);
+        g.fill(new RoundRectangle2D.Double(12, 50, 30, 6, 2, 2));
+        g.setColor(M5);
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 6));
+        g.drawString("TRESOR", 17, 55);
         g.dispose();
         return im;
     }
@@ -385,10 +394,10 @@ public class GeneratePack {
                 g.fill(new RoundRectangle2D.Double(41 + c * 5, 26 + r * 6, 4, 4, 1, 1));
             }
         }
-        rivet(g, 8, 8, 2, GOLD3, GOLD0);
-        rivet(g, 56, 8, 2, GOLD3, GOLD0);
-        rivet(g, 8, 56, 2, GOLD3, GOLD0);
-        rivet(g, 56, 56, 2, GOLD3, GOLD0);
+        for (int k = 0; k < 6; k++) {
+            rivet(g, 9 + k * 9.2, 8, 1.6, GOLD3, GOLD0);
+            rivet(g, 9 + k * 9.2, 56, 1.6, GOLD3, GOLD0);
+        }
         g.dispose();
         return im;
     }
@@ -463,18 +472,18 @@ public class GeneratePack {
         g.setColor(alpha(Color.WHITE, 40));
         g.draw(new RoundRectangle2D.Double(1.5, 1.5, w - 3, h - 3, 7, 7));
 
-        // Anzeige (Reihe 1): neun Mulden
+        // Anzeige (Reihe 0): neun Mulden
         g.setColor(new Color(26, 26, 26));
-        g.fill(new RoundRectangle2D.Double(7, 35, 162, 20, 5, 5));
+        g.fill(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
         g.setColor(alpha(Color.BLACK, 120));
-        g.draw(new RoundRectangle2D.Double(7, 35, 162, 20, 5, 5));
+        g.draw(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
         for (int c = 0; c < 9; c++) {
             g.setColor(new Color(64, 64, 64));
-            g.fill(new Ellipse2D.Double(8 + 18 * c + 5.5, 36 + 5.5, 7, 7));
+            g.fill(new Ellipse2D.Double(8 + 18 * c + 5.5, 18 + 5.5, 7, 7));
         }
 
-        // Tasten: flach, ohne Schatten
-        int[] digitSlots = {20, 21, 22, 23, 24, 29, 30, 31, 32, 33};
+        // Ziffernfeld 3x4 (Spalten 3-5, Reihen 1-4)
+        int[] digitSlots = {12, 13, 14, 21, 22, 23, 30, 31, 32, 40};
         for (int s : digitSlots) button(g, 8 + 18 * (s % 9), 18 + 18 * (s / 9), new Color(92, 92, 92));
         button(g, 8 + 18 * (39 % 9), 18 + 18 * (39 / 9), new Color(128, 62, 58));
         button(g, 8 + 18 * (41 % 9), 18 + 18 * (41 / 9), new Color(56, 120, 76));
@@ -525,7 +534,7 @@ public class GeneratePack {
         g.setColor(new Color(120, 160, 120));
         g.fillRect(0, 0, 520, 520);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        double ox = 300, oy = 400;
+        double ox = 300, oy = 330;
         List<Box> sorted = new ArrayList<>(boxes);
         sorted.sort(Comparator.comparingDouble(Box::z2).thenComparingDouble(Box::x2));
         for (Box b : sorted) {
