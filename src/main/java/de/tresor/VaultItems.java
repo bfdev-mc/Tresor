@@ -25,11 +25,11 @@ final class VaultItems {
         meta.customName(Component.text(large ? "Großer Tresor" : "Tresor", NamedTextColor.GRAY)
                 .decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
-                Component.text(large ? "Platz wie eine Doppelkiste (54 Slots)" : "Platz wie eine Kiste (27 Slots)",
+                Component.text(large ? "Platz wie eine Doppelkiste" : "Platz wie eine Kiste",
                         NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false),
                 Component.text("Beim Platzieren wird ein Code festgelegt.", NamedTextColor.DARK_GRAY)
                         .decoration(TextDecoration.ITALIC, false)));
-        meta.setItemModel(new NamespacedKey("tresor", large ? "safe_large_item" : "safe_small"));
+        meta.setItemModel(new NamespacedKey("tresor", large ? "safe_large" : "safe_small"));
         meta.getPersistentDataContainer().set(typeKey(plugin), PersistentDataType.STRING, large ? "large" : "small");
         item.setItemMeta(meta);
         return item;
@@ -41,5 +41,17 @@ final class VaultItems {
         String type = item.getItemMeta().getPersistentDataContainer().get(typeKey(plugin), PersistentDataType.STRING);
         if (type == null) return null;
         return type.equals("large");
+    }
+
+    /** Button im letzten Slot des geoeffneten Tresors. */
+    static ItemStack lockButton() {
+        ItemStack item = new ItemStack(Material.IRON_DOOR);
+        ItemMeta meta = item.getItemMeta();
+        meta.customName(Component.text("Abschließen", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        meta.lore(List.of(Component.text("Sperrt den Tresor wieder zu.", NamedTextColor.GRAY)
+                .decoration(TextDecoration.ITALIC, false)));
+        meta.setItemModel(new NamespacedKey("tresor", "lock"));
+        item.setItemMeta(meta);
+        return item;
     }
 }

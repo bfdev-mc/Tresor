@@ -46,8 +46,6 @@ public class GeneratePack {
         save("textures/block/safe_side_large", side(NAVY, NAVY_D, NAVY_L, GOLD, true));
         save("textures/block/safe_front_small", frontSmall());
         BufferedImage left = frontLarge(true), right = frontLarge(false);
-        save("textures/block/safe_front_large_left", left);
-        save("textures/block/safe_front_large_right", right);
         BufferedImage both = new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = both.createGraphics();
         g.drawImage(left, 0, 0, null);
@@ -61,17 +59,11 @@ public class GeneratePack {
                 box(0, 0, 0, 16, 16, 16, true),
                 box(11, 4, 16, 13, 12, 17.5, false),     // Griff
                 box(4.5, 6.5, 16, 7.5, 9.5, 17, false)); // Drehknopf
-        model("safe_large_left", "safe_side_large", "safe_front_large_left", "safe_handle",
-                box(0, 0, 0, 16, 16, 16, true),
-                box(12.5, 4, 16, 14.5, 12, 17.5, false));
-        model("safe_large_right", "safe_side_large", "safe_front_large_right", "safe_handle",
-                box(0, 0, 0, 16, 16, 16, true),
-                box(1.5, 4, 16, 3.5, 12, 17.5, false));
-        model("safe_large_item", "safe_side_large", "safe_front_large_item", "safe_handle",
+        model("safe_large", "safe_side_large", "safe_front_large_item", "safe_handle",
                 box(0, 0, 0, 16, 16, 16, true),
                 box(5.5, 4, 16, 7.2, 12, 17.5, false),
                 box(8.8, 4, 16, 10.5, 12, 17.5, false));
-        for (String n : new String[] {"safe_small", "safe_large_left", "safe_large_right", "safe_large_item"}) {
+        for (String n : new String[] {"safe_small", "safe_large"}) {
             write(ASSETS.resolve("items/" + n + ".json"),
                     "{\"model\":{\"type\":\"minecraft:model\",\"model\":\"tresor:block/" + n + "\"}}");
         }
@@ -80,10 +72,11 @@ public class GeneratePack {
         for (int i = 0; i <= 9; i++) key("key_" + i, DARK, String.valueOf(i), Color.WHITE);
         key("key_clear", new Color(150, 40, 40), "C", Color.WHITE);
         key("key_ok", new Color(40, 130, 60), "OK", Color.WHITE);
+        save("textures/item/lock", lockIcon());
         save("textures/item/lcd_on", lcd(true));
         save("textures/item/lcd_off", lcd(false));
         for (String n : new String[] {"key_0", "key_1", "key_2", "key_3", "key_4", "key_5", "key_6", "key_7",
-                "key_8", "key_9", "key_clear", "key_ok", "lcd_on", "lcd_off"}) {
+                "key_8", "key_9", "key_clear", "key_ok", "lcd_on", "lcd_off", "lock"}) {
             write(ASSETS.resolve("models/item/" + n + ".json"),
                     "{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"tresor:item/" + n + "\"}}");
             write(ASSETS.resolve("items/" + n + ".json"),
@@ -95,7 +88,7 @@ public class GeneratePack {
         write(ASSETS.resolve("font/gui.json"), """
                 {"providers":[
                  {"type":"space","advances":{"\\uF000":-8}},
-                 {"type":"bitmap","file":"tresor:font/keypad.png","ascent":13,"height":204,"chars":["\\uE000"]}
+                 {"type":"bitmap","file":"tresor:font/keypad.png","ascent":13,"height":186,"chars":["\\uE000"]}
                 ]}
                 """);
 
@@ -312,64 +305,45 @@ public class GeneratePack {
         return im;
     }
 
-    /** 176x204: Hintergrund eines 5-Reihen-Containers. */
+    /** 176x186: schlichter Hintergrund eines 4-Reihen-Containers. */
     static BufferedImage keypadBackground() {
-        int w = 176, h = 204;
+        int w = 176, h = 186;
         BufferedImage im = img(w, h);
         brushed(im, 0, 0, w, h, new Color(78, 84, 96), 21);
         bevel(im, 0, 0, w, h, 3, STEEL_L, DARKER, true);
-        bevel(im, 3, 3, w - 6, h - 6, 1, DARKER, STEEL_D, false);
         Graphics2D g = gfx(im);
-
-        // Beschriftung
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
-        FontMetrics fm = g.getFontMetrics();
-        String title = "TRESOR";
-        g.setColor(new Color(0, 0, 0, 140));
-        g.drawString(title, (w - fm.stringWidth(title)) / 2 + 1, 13);
-        g.setColor(GOLD);
-        g.drawString(title, (w - fm.stringWidth(title)) / 2, 12);
 
         // LCD-Zeile (Reihe 0)
         g.setColor(new Color(16, 34, 24));
         g.fillRoundRect(6, 17, 164, 20, 4, 4);
         bevel(im, 6, 17, 164, 20, 1, STEEL_L, DARKER, false);
 
-        // Tastenfelder + leere Slot-Zellen im Container
-        int[] keySlots = {12, 13, 14, 21, 22, 23, 30, 31, 32, 39, 40, 41};
+        // Tastenfeld
+        int[] keySlots = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24, 30, 32};
         for (int s : keySlots) cell(im, 8 + 18 * (s % 9), 18 + 18 * (s / 9));
 
-        // Dekor links/rechts: Lueftungsschlitze und Schrauben
-        for (int r = 0; r < 4; r++) {
-            for (int k = 0; k < 4; k++) {
-                g.setColor(DARKER);
-                g.fillRect(12, 44 + r * 18 + k * 4, 46, 2);
-                g.setColor(STEEL_D);
-                g.fillRect(12, 46 + r * 18 + k * 4, 46, 1);
-            }
-        }
-        g.setColor(DARKER);
-        g.fillRoundRect(124, 46, 40, 24, 3, 3);
-        g.setColor(GOLD);
-        g.drawRoundRect(124, 46, 40, 24, 3, 3);
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 8));
-        g.drawString("SAFE", 133, 56);
-        g.setColor(STEEL_L);
-        g.drawString("CODE", 133, 66);
-        g.setColor(new Color(220, 50, 40));
-        g.fillOval(144, 78, 6, 6);
-        g.setColor(new Color(90, 255, 130));
-        g.fillOval(154, 78, 6, 6);
-        for (int[] p : new int[][] {{8, 8}, {165, 8}, {8, 98}, {165, 98}}) rivet(im, p[0], p[1], STEEL_L, DARKER);
+        // Spielerinventar
+        for (int r = 0; r < 3; r++) for (int c = 0; c < 9; c++) cell(im, 8 + c * 18, 103 + r * 18);
+        for (int c = 0; c < 9; c++) cell(im, 8 + c * 18, 161);
+        g.dispose();
+        return im;
+    }
 
-        // Trennlinie + Spielerinventar
-        g.setColor(DARKER);
-        g.fillRect(4, 108, w - 8, 2);
+    static BufferedImage lockIcon() {
+        BufferedImage im = img(32, 32);
+        Graphics2D g = gfx(im);
+        g.setStroke(new BasicStroke(3.5f));
         g.setColor(STEEL_L);
-        g.fillRect(4, 110, w - 8, 1);
-        int var6 = (5 - 4) * 18;
-        for (int r = 0; r < 3; r++) for (int c = 0; c < 9; c++) cell(im, 8 + c * 18, 103 + var6 + r * 18);
-        for (int c = 0; c < 9; c++) cell(im, 8 + c * 18, 161 + var6);
+        g.drawArc(9, 3, 14, 18, 0, 180);
+        g.drawLine(9, 12, 9, 15);
+        g.drawLine(23, 12, 23, 15);
+        g.setColor(GOLD_D);
+        g.fillRoundRect(5, 14, 22, 16, 4, 4);
+        g.setColor(GOLD);
+        g.fillRoundRect(6, 15, 20, 12, 3, 3);
+        g.setColor(DARKER);
+        g.fillOval(13, 17, 6, 6);
+        g.fillRect(15, 21, 2, 5);
         g.dispose();
         return im;
     }

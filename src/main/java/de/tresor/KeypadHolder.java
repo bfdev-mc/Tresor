@@ -23,8 +23,10 @@ import net.kyori.adventure.text.format.TextDecoration;
 final class KeypadHolder implements InventoryHolder {
     static final int MIN_LENGTH = 4;
     static final int MAX_LENGTH = 9;
-    static final int CLEAR = 39, ZERO = 40, OK = 41;
-    static final int[] DIGIT_SLOTS = {12, 13, 14, 21, 22, 23, 30, 31, 32};
+    static final int CLEAR = 30, OK = 32;
+    /** Ziffern 1-9, dann 0 - in zwei Reihen zu je fuenf Tasten. */
+    static final int[] DIGIT_SLOTS = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24};
+    static final int[] DIGITS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 
     final TresorVault vault;
     final boolean setMode;
@@ -46,16 +48,16 @@ final class KeypadHolder implements InventoryHolder {
         } else {
             title = Component.text(setMode ? "Code festlegen" : "Code eingeben");
         }
-        this.inventory = Bukkit.createInventory(this, 45, title);
+        this.inventory = Bukkit.createInventory(this, 36, title);
 
         if (!custom) {
             ItemStack filler = item(Material.GRAY_STAINED_GLASS_PANE, " ", null, 1);
-            for (int i = 0; i < 45; i++) inventory.setItem(i, filler);
+            for (int i = 0; i < 36; i++) inventory.setItem(i, filler);
         }
-        for (int i = 0; i < 9; i++) {
-            inventory.setItem(DIGIT_SLOTS[i], item(Material.LIGHT_GRAY_CONCRETE, String.valueOf(i + 1), "key_" + (i + 1), i + 1));
+        for (int i = 0; i < DIGIT_SLOTS.length; i++) {
+            int d = DIGITS[i];
+            inventory.setItem(DIGIT_SLOTS[i], item(Material.LIGHT_GRAY_CONCRETE, String.valueOf(d), "key_" + d, Math.max(d, 1)));
         }
-        inventory.setItem(ZERO, item(Material.LIGHT_GRAY_CONCRETE, "0", "key_0", 1));
         inventory.setItem(CLEAR, item(Material.RED_CONCRETE, "Löschen", "key_clear", 1));
         inventory.setItem(OK, item(Material.LIME_CONCRETE, "Bestätigen", "key_ok", 1));
         render();
@@ -63,8 +65,7 @@ final class KeypadHolder implements InventoryHolder {
 
     /** @return die Ziffer des Slots oder -1. */
     static int digitOf(int slot) {
-        if (slot == ZERO) return 0;
-        for (int i = 0; i < 9; i++) if (DIGIT_SLOTS[i] == slot) return i + 1;
+        for (int i = 0; i < DIGIT_SLOTS.length; i++) if (DIGIT_SLOTS[i] == slot) return DIGITS[i];
         return -1;
     }
 

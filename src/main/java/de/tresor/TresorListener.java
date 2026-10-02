@@ -62,16 +62,6 @@ final class TresorListener implements Listener {
         return BlockFace.EAST;
     }
 
-    /** Rechts vom Spieler, der in Richtung f schaut. */
-    private static BlockFace rightOf(BlockFace f) {
-        return switch (f) {
-            case SOUTH -> BlockFace.WEST;
-            case WEST -> BlockFace.NORTH;
-            case NORTH -> BlockFace.EAST;
-            default -> BlockFace.SOUTH;
-        };
-    }
-
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent e) {
         Boolean large = VaultItems.typeOf(plugin, e.getItemInHand());
@@ -80,23 +70,12 @@ final class TresorListener implements Listener {
         Player p = e.getPlayer();
         Block first = e.getBlockPlaced();
         BlockFace look = horizontalFacing(p);
-        Block second = large ? first.getRelative(rightOf(look)) : null;
-
-        if (second != null && !second.isReplaceable()) {
-            e.setCancelled(true);
-            msg(p, "Für den großen Tresor wird rechts daneben ein freier Block benötigt.", NamedTextColor.RED);
-            return;
-        }
 
         // Der Block selbst ist Eisen (Abbauzeit, Partikel, Sound); das Aussehen kommt vom ItemDisplay.
         first.setType(Material.IRON_BLOCK, false);
 
         List<String> keys = new ArrayList<>();
         keys.add(VaultManager.key(first));
-        if (second != null) {
-            second.setType(Material.IRON_BLOCK, false);
-            keys.add(VaultManager.key(second));
-        }
 
         TresorVault vault = new TresorVault(UUID.randomUUID(), large, keys);
         vault.front = look.getOppositeFace();
@@ -167,6 +146,27 @@ final class TresorListener implements Listener {
     // ------------------------------------------------------------ Zahlenfeld
 
     @EventHandler
+    public void onVaultClick(InventoryClickEvent e) {
+        Inventory top = e.getView().getTopInventory();
+        if (!(top.getHolder() instanceof VaultHolder holder)) return;
+        if (e.getRawSlot() != top.getSize() - 1) return;
+        e.setCancelled(true);
+        if (e.getWhoClicked() instanceof Player p) lock(holder.vault, p);
+    }
+
+    /** Sperrt den Tresor fuer alle wieder zu und schliesst ihn. */
+    private void lock(TresorVault vault, Player locker) {
+        vault.unlocked.clear();
+        vault.failures.clear();
+        locker.playSound(locker.getLocation(), Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 0.8f);
+        msg(locker, "Tresor abgeschlossen.", NamedTextColor.GREEN);
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            if (vault.inventory == null) return;
+            for (org.bukkit.entity.HumanEntity v : new ArrayList<>(vault.inventory.getViewers())) v.closeInventory();
+        });
+    }
+
+    @EventHandler
     public void onClick(InventoryClickEvent e) {
         if (!(e.getView().getTopInventory().getHolder() instanceof KeypadHolder pad)) return;
         e.setCancelled(true);
@@ -233,6 +233,11 @@ final class TresorListener implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) {
+        Inventory top = e.getView().getTopInventory();
+        if (top.getHolder() instanceof VaultHolder && e.getRawSlots().contains(top.getSize() - 1)) {
+            e.setCancelled(true);
+            return;
+        }
         if (e.getView().getTopInventory().getHolder() instanceof KeypadHolder) e.setCancelled(true);
     }
 

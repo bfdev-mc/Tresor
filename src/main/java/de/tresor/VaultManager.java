@@ -102,12 +102,29 @@ final class VaultManager {
             if (v.stored != null) {
                 v.inventory.setContents(Arrays.copyOf(v.stored, v.size()));
             }
+            // Der letzte Slot gehoert dem Abschliessen-Button; Altbestand daraus umlagern
+            int last = v.size() - 1;
+            ItemStack old = v.inventory.getItem(last);
+            v.inventory.setItem(last, null);
+            if (old != null && !old.isEmpty()) {
+                v.inventory.addItem(old).values().forEach(rest -> {
+                    String[] k = v.blocks.get(0).split(";");
+                    org.bukkit.World w = Bukkit.getWorld(k[0]);
+                    if (w != null) w.dropItemNaturally(new org.bukkit.Location(w, Integer.parseInt(k[1]) + 0.5,
+                            Integer.parseInt(k[2]) + 1, Integer.parseInt(k[3]) + 0.5), rest);
+                });
+            }
+            v.inventory.setItem(last, VaultItems.lockButton());
         }
         return v.inventory;
     }
 
     ItemStack[] contents(TresorVault v) {
-        if (v.inventory != null) return v.inventory.getContents();
+        if (v.inventory != null) {
+            ItemStack[] c = v.inventory.getContents();
+            c[c.length - 1] = null; // Button gehoert nicht zum Inhalt
+            return c;
+        }
         return v.stored == null ? new ItemStack[0] : v.stored;
     }
 

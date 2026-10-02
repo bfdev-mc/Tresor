@@ -46,8 +46,7 @@ final class VaultDisplays {
     }
 
     private static String modelFor(TresorVault v, int index) {
-        if (!v.large) return "safe_small";
-        return index == 0 ? "safe_large_left" : "safe_large_right";
+        return v.large ? "safe_large" : "safe_small";
     }
 
     private static Block blockOf(String key, org.bukkit.Server server) {
