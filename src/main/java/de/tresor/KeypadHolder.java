@@ -29,15 +29,19 @@ final class KeypadHolder implements InventoryHolder {
     static final int[] DIGITS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 
     final TresorVault vault;
+    enum Mode { SET, OPEN, BREAK }
+
+    final Mode mode;
     final boolean setMode;
     final boolean custom;
     final StringBuilder entry = new StringBuilder();
     boolean done;
     private final Inventory inventory;
 
-    KeypadHolder(TresorVault vault, boolean setMode, boolean custom) {
+    KeypadHolder(TresorVault vault, Mode mode, boolean custom) {
         this.vault = vault;
-        this.setMode = setMode;
+        this.mode = mode;
+        this.setMode = mode == Mode.SET;
         this.custom = custom;
 
         Component title;
@@ -46,7 +50,7 @@ final class KeypadHolder implements InventoryHolder {
                     .font(Key.key("tresor", "gui"))
                     .shadowColor(ShadowColor.none());
         } else {
-            title = Component.text(setMode ? "Code festlegen" : "Code eingeben");
+            title = Component.text(setMode ? "Code festlegen" : mode == Mode.BREAK ? "Code zum Abbauen" : "Code eingeben");
         }
         this.inventory = Bukkit.createInventory(this, 36, title);
 

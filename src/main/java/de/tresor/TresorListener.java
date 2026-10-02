@@ -81,7 +81,7 @@ final class TresorListener implements Listener {
         vault.front = look.getOppositeFace();
         manager.register(vault);
         displays.ensure(vault);
-        plugin.getServer().getScheduler().runTask(plugin, () -> p.openInventory(new KeypadHolder(vault, true, packLoaded.contains(p.getUniqueId())).getInventory()));
+        plugin.getServer().getScheduler().runTask(plugin, () -> p.openInventory(new KeypadHolder(vault, KeypadHolder.Mode.SET, packLoaded.contains(p.getUniqueId())).getInventory()));
     }
 
     /** Bricht das Platzieren ab, wenn kein Code gesetzt wurde. */
@@ -114,28 +114,50 @@ final class TresorListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInteract(PlayerInteractEvent e) {
-        if (e.getAction() != Action.RIGHT_CLICK_BLOCK || e.getClickedBlock() == null) return;
+        Action action = e.getAction();
+        if ((action != Action.RIGHT_CLICK_BLOCK && action != Action.LEFT_CLICK_BLOCK) || e.getClickedBlock() == null) return;
         TresorVault vault = manager.at(e.getClickedBlock());
         if (vault == null) return;
 
         Player p = e.getPlayer();
+        boolean admin = p.hasPermission("tresor.admin");
+
+        if (action == Action.LEFT_CLICK_BLOCK) {
+            // Abbauen ist nur kurz nach einer Code-Eingabe erlaubt
+            if (admin) return;
+            e.setCancelled(true);
+            if (vault.pending() || vault.isUnlocked(p.getUniqueId())) {
+                if (!vault.pending()) e.setCancelled(false);
+                return;
+            }
+            if (p.getOpenInventory().getTopInventory().getHolder() == null
+                    || p.getOpenInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING) {
+                openKeypad(p, vault, KeypadHolder.Mode.BREAK);
+            }
+            return;
+        }
+
         // Sneaken mit Block in der Hand = normal platzieren, wie bei Kisten
         if (p.isSneaking() && !p.getInventory().getItemInMainHand().isEmpty()) return;
 
-        e.setCancelled(true); // verhindert das vanilla-Verhalten des Vault-Blocks
+        e.setCancelled(true); // verhindert normale Block-Interaktion
         if (e.getHand() != EquipmentSlot.HAND || vault.pending()) return;
 
-        if (p.hasPermission("tresor.admin") || vault.isUnlocked(p.getUniqueId())) {
+        if (admin) {
             openVault(p, vault);
             return;
         }
+        openKeypad(p, vault, KeypadHolder.Mode.OPEN);
+    }
+
+    private void openKeypad(Player p, TresorVault vault, KeypadHolder.Mode mode) {
         Long lock = vault.lockedUntil.get(p.getUniqueId());
         if (lock != null && lock > System.currentTimeMillis()) {
             msg(p, "Zu viele Fehlversuche. Warte " + ((lock - System.currentTimeMillis()) / 1000 + 1) + " Sekunden.",
                     NamedTextColor.RED);
             return;
         }
-        p.openInventory(new KeypadHolder(vault, false, packLoaded.contains(p.getUniqueId())).getInventory());
+        p.openInventory(new KeypadHolder(vault, mode, packLoaded.contains(p.getUniqueId())).getInventory());
     }
 
     private void openVault(Player p, TresorVault vault) {
@@ -144,27 +166,6 @@ final class TresorListener implements Listener {
     }
 
     // ------------------------------------------------------------ Zahlenfeld
-
-    @EventHandler
-    public void onVaultClick(InventoryClickEvent e) {
-        Inventory top = e.getView().getTopInventory();
-        if (!(top.getHolder() instanceof VaultHolder holder)) return;
-        if (e.getRawSlot() != top.getSize() - 1) return;
-        e.setCancelled(true);
-        if (e.getWhoClicked() instanceof Player p) lock(holder.vault, p);
-    }
-
-    /** Sperrt den Tresor fuer alle wieder zu und schliesst ihn. */
-    private void lock(TresorVault vault, Player locker) {
-        vault.unlocked.clear();
-        vault.failures.clear();
-        locker.playSound(locker.getLocation(), Sound.BLOCK_IRON_TRAPDOOR_CLOSE, 1f, 0.8f);
-        msg(locker, "Tresor abgeschlossen.", NamedTextColor.GREEN);
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (vault.inventory == null) return;
-            for (org.bukkit.entity.HumanEntity v : new ArrayList<>(vault.inventory.getViewers())) v.closeInventory();
-        });
-    }
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
@@ -198,7 +199,6 @@ final class TresorListener implements Listener {
                 return;
             }
             manager.setCode(vault, code);
-            vault.unlock(p.getUniqueId());
             pad.done = true;
             manager.save();
             p.playSound(p.getLocation(), Sound.BLOCK_IRON_DOOR_CLOSE, 1f, 1f);
@@ -209,11 +209,15 @@ final class TresorListener implements Listener {
 
         UUID id = p.getUniqueId();
         if (manager.checkCode(vault, code)) {
-            vault.unlock(id);
+            vault.failures.remove(id);
             pad.done = true;
-            msg(p, "Code richtig. Der Tresor bleibt 2 Minuten für dich entsperrt (auch zum Abbauen).",
-                    NamedTextColor.GREEN);
-            plugin.getServer().getScheduler().runTask(plugin, () -> openVault(p, vault));
+            if (pad.mode == KeypadHolder.Mode.BREAK) {
+                vault.unlock(id);
+                msg(p, "Code richtig. Du kannst den Tresor jetzt kurz abbauen.", NamedTextColor.GREEN);
+                plugin.getServer().getScheduler().runTask(plugin, () -> p.closeInventory());
+            } else {
+                plugin.getServer().getScheduler().runTask(plugin, () -> openVault(p, vault));
+            }
         } else {
             int fails = vault.failures.merge(id, 1, Integer::sum);
             pad.entry.setLength(0);
@@ -233,11 +237,6 @@ final class TresorListener implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) {
-        Inventory top = e.getView().getTopInventory();
-        if (top.getHolder() instanceof VaultHolder && e.getRawSlots().contains(top.getSize() - 1)) {
-            e.setCancelled(true);
-            return;
-        }
         if (e.getView().getTopInventory().getHolder() instanceof KeypadHolder) e.setCancelled(true);
     }
 
@@ -267,7 +266,7 @@ final class TresorListener implements Listener {
         if (vault.pending()
                 || !(p.hasPermission("tresor.admin") || vault.isUnlocked(p.getUniqueId()))) {
             e.setCancelled(true);
-            msg(p, "Nur wer den Code kennt, kann den Tresor abbauen. Rechtsklick und Code eingeben!",
+            msg(p, "Nur wer den Code kennt, kann den Tresor abbauen. Linksklick auf den Tresor und Code eingeben!",
                     NamedTextColor.RED);
             return;
         }

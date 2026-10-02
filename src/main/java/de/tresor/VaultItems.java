@@ -42,16 +42,4 @@ final class VaultItems {
         if (type == null) return null;
         return type.equals("large");
     }
-
-    /** Button im letzten Slot des geoeffneten Tresors. */
-    static ItemStack lockButton() {
-        ItemStack item = new ItemStack(Material.IRON_DOOR);
-        ItemMeta meta = item.getItemMeta();
-        meta.customName(Component.text("Abschließen", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-        meta.lore(List.of(Component.text("Sperrt den Tresor wieder zu.", NamedTextColor.GRAY)
-                .decoration(TextDecoration.ITALIC, false)));
-        meta.setItemModel(new NamespacedKey("tresor", "lock"));
-        item.setItemMeta(meta);
-        return item;
-    }
 }

@@ -21,8 +21,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import net.kyori.adventure.text.Component;
 
 public final class TresorPlugin extends JavaPlugin implements Listener {
-    /** Wie lange ein eingegebener Code gueltig bleibt (zum Oeffnen/Abbauen). */
-    static final long UNLOCK_MILLIS = 2 * 60 * 1000L;
+    /** Wie lange nach korrekter Code-Eingabe abgebaut werden darf. */
+    static final long UNLOCK_MILLIS = 15 * 1000L;
     /** Feste Pack-ID, damit ein neues Pack das alte ersetzt. */
     private static final UUID PACK_ID = UUID.fromString("7a1f0c2e-5b3d-4e6a-9c88-0d7e2f4b1a11");
 

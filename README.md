@@ -12,10 +12,9 @@ Das Pack wird per `java tools/GeneratePack.java` komplett aus Code erzeugt (Text
 ## Benutzung
 
 1. Tresor platzieren – ein Zahlenfeld öffnet sich, dort einen Code (4–9 Ziffern) festlegen. Ohne Code wird das Platzieren abgebrochen und du bekommst den Tresor zurück.
-2. Rechtsklick auf den Tresor → Code eingeben → der Tresor öffnet sich. Danach bleibt er 2 Minuten für dich entsperrt.
-3. Im geöffneten Tresor ist der letzte Slot (unten rechts) der **Abschließen-Button**: sperrt den Tresor für alle wieder zu. Dieser Slot ist deshalb kein Lagerplatz (26 bzw. 53 nutzbare Slots).
-4. Abbauen geht nur, wenn der Tresor für dich entsperrt ist (vorher Rechtsklick + Code). Inhalt und Tresor-Item droppen.
-5. Nach 5 Fehlversuchen: 30 Sekunden Sperre.
+2. Rechtsklick auf den Tresor → Code eingeben → der Tresor öffnet sich. Sobald du ihn schließt, ist er sofort wieder zu: jeder Zugriff braucht den Code.
+3. Abbauen: Linksklick auf den Tresor → Code eingeben → danach 15 Sekunden lang abbauen. Inhalt und Tresor-Item droppen.
+4. Nach 5 Fehlversuchen: 30 Sekunden Sperre.
 
 Tresore sind gegen Explosionen und Kolben geschützt. Der Code wird nur als Hash gespeichert (`plugins/Tresor/tresore.yml`).
 
