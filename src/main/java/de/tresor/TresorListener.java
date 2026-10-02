@@ -40,12 +40,9 @@ final class TresorListener implements Listener {
     private final VaultManager manager;
     private final VaultDisplays displays;
     private final java.util.Set<UUID> packLoaded;
-    private final InventoryStash stash;
 
-    TresorListener(TresorPlugin plugin, VaultManager manager, VaultDisplays displays, java.util.Set<UUID> packLoaded,
-                   InventoryStash stash) {
+    TresorListener(TresorPlugin plugin, VaultManager manager, VaultDisplays displays, java.util.Set<UUID> packLoaded) {
         this.plugin = plugin;
-        this.stash = stash;
         this.manager = manager;
         this.displays = displays;
         this.packLoaded = packLoaded;
@@ -163,10 +160,8 @@ final class TresorListener implements Listener {
         showKeypad(p, new KeypadHolder(vault, mode, packLoaded.contains(p.getUniqueId())));
     }
 
-    /** Oeffnet das Zahlenfeld und blendet dabei das Spielerinventar aus. */
     private void showKeypad(Player p, KeypadHolder pad) {
         p.openInventory(pad.getInventory());
-        if (p.getOpenInventory().getTopInventory().getHolder() == pad) stash.hide(p);
     }
 
     private void openVault(Player p, TresorVault vault) {
@@ -253,7 +248,6 @@ final class TresorListener implements Listener {
     public void onClose(InventoryCloseEvent e) {
         Inventory inv = e.getInventory();
         if (inv.getHolder() instanceof KeypadHolder pad) {
-            if (e.getPlayer() instanceof Player sp) stash.restore(sp);
             if (pad.setMode && !pad.done && e.getPlayer() instanceof Player p && pad.vault.pending()) {
                 cancelPending(pad.vault, p);
             }

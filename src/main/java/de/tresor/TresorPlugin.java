@@ -14,7 +14,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,7 +28,6 @@ public final class TresorPlugin extends JavaPlugin implements Listener {
 
     private VaultManager manager;
     private VaultDisplays displays;
-    private InventoryStash stash;
     private final Set<UUID> packLoaded = new HashSet<>();
     private NamespacedKey smallRecipe;
     private NamespacedKey largeRecipe;
@@ -40,10 +38,9 @@ public final class TresorPlugin extends JavaPlugin implements Listener {
         manager = new VaultManager(this);
         manager.load();
         displays = new VaultDisplays(this, manager);
-        stash = new InventoryStash(this);
         registerRecipes();
 
-        getServer().getPluginManager().registerEvents(new TresorListener(this, manager, displays, packLoaded, stash), this);
+        getServer().getPluginManager().registerEvents(new TresorListener(this, manager, displays, packLoaded), this);
         getServer().getPluginManager().registerEvents(this, this);
 
         // Modelle fuer bereits geladene Chunks nachziehen
@@ -57,7 +54,6 @@ public final class TresorPlugin extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        if (stash != null) stash.restoreAll();
         if (manager != null) manager.save();
     }
 
@@ -80,7 +76,6 @@ public final class TresorPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        stash.restore(e.getPlayer()); // nach einem Absturz waehrend des Zahlenfelds
         e.getPlayer().discoverRecipes(List.of(smallRecipe, largeRecipe));
 
         String url = getConfig().getString("resource-pack.url", "");
@@ -104,20 +99,7 @@ public final class TresorPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        stash.restore(e.getPlayer());
         packLoaded.remove(e.getPlayer().getUniqueId());
-    }
-
-    @EventHandler
-    public void onDeath(org.bukkit.event.entity.PlayerDeathEvent e) {
-        // Stirbt jemand bei offenem Zahlenfeld, gehoeren die weggelegten Items zum Todes-Drop
-        ItemStack[] saved = stash.take(e.getPlayer().getUniqueId());
-        if (saved == null) return;
-        for (ItemStack it : saved) {
-            if (it == null || it.isEmpty()) continue;
-            if (e.getKeepInventory()) e.getPlayer().getInventory().addItem(it);
-            else e.getDrops().add(it);
-        }
     }
 
     @EventHandler

@@ -450,7 +450,7 @@ public class GeneratePack {
         return im;
     }
 
-    /** 176x204: Hintergrund eines 5-Reihen-Containers (flach, neutral grau). Das Spielerinventar wird per Plugin ausgeblendet. */
+    /** 176x204: Hintergrund eines 5-Reihen-Containers (flach, neutral grau). */
     static BufferedImage keypadBackground() {
         int w = 176, h = 204;
         BufferedImage im = img(w, h);
@@ -479,15 +479,11 @@ public class GeneratePack {
         button(g, 8 + 18 * (39 % 9), 18 + 18 * (39 / 9), new Color(128, 62, 58));
         button(g, 8 + 18 * (41 % 9), 18 + 18 * (41 / 9), new Color(56, 120, 76));
 
-        // Streifen fuer das "Inventory"-Label des Clients, darunter Luftschlitze
+        // Streifen fuer das "Inventory"-Label des Clients, darunter das Spielerinventar
         g.setColor(new Color(36, 36, 36));
         g.fill(new RoundRectangle2D.Double(7, 108, 162, 11, 4, 4));
-        for (int k = 0; k < 6; k++) {
-            g.setColor(new Color(30, 30, 30));
-            g.fill(new RoundRectangle2D.Double(30, 130 + k * 10, 116, 4, 2, 2));
-            g.setColor(alpha(Color.WHITE, 24));
-            g.fillRect(32, 134 + k * 10, 112, 1);
-        }
+        for (int r = 0; r < 3; r++) for (int c = 0; c < 9; c++) slot(g, 8 + c * 18, 121 + r * 18);
+        for (int c = 0; c < 9; c++) slot(g, 8 + c * 18, 179);
         g.dispose();
         return im;
     }

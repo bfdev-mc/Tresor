@@ -18,8 +18,6 @@ Das Pack wird per `java tools/GeneratePack.java` komplett aus Code erzeugt (Text
 
 Tresore sind gegen Explosionen und Kolben geschützt. Der Code wird nur als Hash gespeichert (`plugins/Tresor/tresore.yml`).
 
-Während das Zahlenfeld offen ist, wird dein Inventar kurz weggelegt (und beim Schließen zurückgegeben; Sicherung in `plugins/Tresor/stash`), damit du es nicht siehst.
-
 Permission `tresor.admin` (Standard: niemand, auch keine OPs): Tresore ohne Code öffnen/abbauen.
 
 ## Bauen

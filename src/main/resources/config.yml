@@ -3,5 +3,5 @@
 resource-pack:
   send: true
   required: false
-  url: "https://github.com/bfdev-mc/Tresor/releases/download/v1.4.0/TresorPack.zip"
-  sha1: "2929582420af170ff7527708821f960f03f2f598"
+  url: "https://github.com/bfdev-mc/Tresor/releases/download/v1.4.1/TresorPack.zip"
+  sha1: "de8976210558c3bbe40573ccc1492e76c5c7fa3c"
