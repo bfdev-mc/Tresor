@@ -141,7 +141,7 @@ public class GeneratePack {
         write(ASSETS.resolve("font/gui.json"), """
                 {"providers":[
                  {"type":"space","advances":{"\\uF000":-8}},
-                 {"type":"bitmap","file":"tresor:font/keypad.png","ascent":13,"height":186,"chars":["\\uE000"]}
+                 {"type":"bitmap","file":"tresor:font/keypad.png","ascent":13,"height":204,"chars":["\\uE000"]}
                 ]}
                 """);
         ImageIO.write(bg, "png", new File("build/preview_gui.png"));
@@ -450,9 +450,9 @@ public class GeneratePack {
         return im;
     }
 
-    /** 176x186: Hintergrund eines 4-Reihen-Containers (flach, neutral grau). */
+    /** 176x204: Hintergrund eines 5-Reihen-Containers (flach, neutral grau). Das Spielerinventar wird per Plugin ausgeblendet. */
     static BufferedImage keypadBackground() {
-        int w = 176, h = 186;
+        int w = 176, h = 204;
         BufferedImage im = img(w, h);
         Graphics2D g = gfx(im);
         g.setPaint(new GradientPaint(0, 0, new Color(70, 70, 70), 0, h, new Color(46, 46, 46)));
@@ -463,27 +463,31 @@ public class GeneratePack {
         g.setColor(alpha(Color.WHITE, 40));
         g.draw(new RoundRectangle2D.Double(1.5, 1.5, w - 3, h - 3, 7, 7));
 
-        // Anzeige (Reihe 0): neun Mulden
+        // Anzeige (Reihe 1): neun Mulden
         g.setColor(new Color(26, 26, 26));
-        g.fill(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
+        g.fill(new RoundRectangle2D.Double(7, 35, 162, 20, 5, 5));
         g.setColor(alpha(Color.BLACK, 120));
-        g.draw(new RoundRectangle2D.Double(7, 17, 162, 20, 5, 5));
+        g.draw(new RoundRectangle2D.Double(7, 35, 162, 20, 5, 5));
         for (int c = 0; c < 9; c++) {
             g.setColor(new Color(64, 64, 64));
-            g.fill(new Ellipse2D.Double(8 + 18 * c + 5.5, 18 + 5.5, 7, 7));
+            g.fill(new Ellipse2D.Double(8 + 18 * c + 5.5, 36 + 5.5, 7, 7));
         }
 
         // Tasten: flach, ohne Schatten
-        int[] digitSlots = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24};
+        int[] digitSlots = {20, 21, 22, 23, 24, 29, 30, 31, 32, 33};
         for (int s : digitSlots) button(g, 8 + 18 * (s % 9), 18 + 18 * (s / 9), new Color(92, 92, 92));
-        button(g, 8 + 18 * (30 % 9), 18 + 18 * (30 / 9), new Color(128, 62, 58));
-        button(g, 8 + 18 * (32 % 9), 18 + 18 * (32 / 9), new Color(56, 120, 76));
+        button(g, 8 + 18 * (39 % 9), 18 + 18 * (39 / 9), new Color(128, 62, 58));
+        button(g, 8 + 18 * (41 % 9), 18 + 18 * (41 / 9), new Color(56, 120, 76));
 
-        // Beschriftungsstreifen fuer das "Inventory"-Label des Clients
+        // Streifen fuer das "Inventory"-Label des Clients, darunter Luftschlitze
         g.setColor(new Color(36, 36, 36));
-        g.fill(new RoundRectangle2D.Double(7, 90, 162, 11, 4, 4));
-        for (int r = 0; r < 3; r++) for (int c = 0; c < 9; c++) slot(g, 8 + c * 18, 103 + r * 18);
-        for (int c = 0; c < 9; c++) slot(g, 8 + c * 18, 161);
+        g.fill(new RoundRectangle2D.Double(7, 108, 162, 11, 4, 4));
+        for (int k = 0; k < 6; k++) {
+            g.setColor(new Color(30, 30, 30));
+            g.fill(new RoundRectangle2D.Double(30, 130 + k * 10, 116, 4, 2, 2));
+            g.setColor(alpha(Color.WHITE, 24));
+            g.fillRect(32, 134 + k * 10, 112, 1);
+        }
         g.dispose();
         return im;
     }

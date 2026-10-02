@@ -40,9 +40,12 @@ final class TresorListener implements Listener {
     private final VaultManager manager;
     private final VaultDisplays displays;
     private final java.util.Set<UUID> packLoaded;
+    private final InventoryStash stash;
 
-    TresorListener(TresorPlugin plugin, VaultManager manager, VaultDisplays displays, java.util.Set<UUID> packLoaded) {
+    TresorListener(TresorPlugin plugin, VaultManager manager, VaultDisplays displays, java.util.Set<UUID> packLoaded,
+                   InventoryStash stash) {
         this.plugin = plugin;
+        this.stash = stash;
         this.manager = manager;
         this.displays = displays;
         this.packLoaded = packLoaded;
@@ -81,7 +84,7 @@ final class TresorListener implements Listener {
         vault.front = look.getOppositeFace();
         manager.register(vault);
         displays.ensure(vault);
-        plugin.getServer().getScheduler().runTask(plugin, () -> p.openInventory(new KeypadHolder(vault, KeypadHolder.Mode.SET, packLoaded.contains(p.getUniqueId())).getInventory()));
+        plugin.getServer().getScheduler().runTask(plugin, () -> showKeypad(p, new KeypadHolder(vault, KeypadHolder.Mode.SET, packLoaded.contains(p.getUniqueId()))));
     }
 
     /** Bricht das Platzieren ab, wenn kein Code gesetzt wurde. */
@@ -157,7 +160,13 @@ final class TresorListener implements Listener {
                     NamedTextColor.RED);
             return;
         }
-        p.openInventory(new KeypadHolder(vault, mode, packLoaded.contains(p.getUniqueId())).getInventory());
+        showKeypad(p, new KeypadHolder(vault, mode, packLoaded.contains(p.getUniqueId())));
+    }
+
+    /** Oeffnet das Zahlenfeld und blendet dabei das Spielerinventar aus. */
+    private void showKeypad(Player p, KeypadHolder pad) {
+        p.openInventory(pad.getInventory());
+        if (p.getOpenInventory().getTopInventory().getHolder() == pad) stash.hide(p);
     }
 
     private void openVault(Player p, TresorVault vault) {
@@ -244,6 +253,7 @@ final class TresorListener implements Listener {
     public void onClose(InventoryCloseEvent e) {
         Inventory inv = e.getInventory();
         if (inv.getHolder() instanceof KeypadHolder pad) {
+            if (e.getPlayer() instanceof Player sp) stash.restore(sp);
             if (pad.setMode && !pad.done && e.getPlayer() instanceof Player p && pad.vault.pending()) {
                 cancelPending(pad.vault, p);
             }

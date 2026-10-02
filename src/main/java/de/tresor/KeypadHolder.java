@@ -23,9 +23,9 @@ import net.kyori.adventure.text.format.TextDecoration;
 final class KeypadHolder implements InventoryHolder {
     static final int MIN_LENGTH = 4;
     static final int MAX_LENGTH = 9;
-    static final int CLEAR = 30, OK = 32;
+    static final int CLEAR = 39, OK = 41, DISPLAY_START = 9;
     /** Ziffern 1-9, dann 0 - in zwei Reihen zu je fuenf Tasten. */
-    static final int[] DIGIT_SLOTS = {11, 12, 13, 14, 15, 20, 21, 22, 23, 24};
+    static final int[] DIGIT_SLOTS = {20, 21, 22, 23, 24, 29, 30, 31, 32, 33};
     static final int[] DIGITS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
 
     final TresorVault vault;
@@ -52,11 +52,11 @@ final class KeypadHolder implements InventoryHolder {
         } else {
             title = Component.text(setMode ? "Code festlegen" : mode == Mode.BREAK ? "Code zum Abbauen" : "Code eingeben");
         }
-        this.inventory = Bukkit.createInventory(this, 36, title);
+        this.inventory = Bukkit.createInventory(this, 45, title);
 
         if (!custom) {
             ItemStack filler = item(Material.GRAY_STAINED_GLASS_PANE, " ", null, 1);
-            for (int i = 0; i < 36; i++) inventory.setItem(i, filler);
+            for (int i = 0; i < 45; i++) inventory.setItem(i, filler);
         }
         for (int i = 0; i < DIGIT_SLOTS.length; i++) {
             int d = DIGITS[i];
@@ -78,14 +78,14 @@ final class KeypadHolder implements InventoryHolder {
         for (int i = 0; i < 9; i++) {
             boolean on = i < entry.length();
             if (!on) {
-                inventory.setItem(i, custom ? null : item(Material.BLACK_STAINED_GLASS_PANE, " ", null, 1));
+                inventory.setItem(DISPLAY_START + i, custom ? null : item(Material.BLACK_STAINED_GLASS_PANE, " ", null, 1));
                 continue;
             }
             ItemStack lcd = item(Material.LIME_STAINED_GLASS_PANE, "*", "lcd_on", 1);
             ItemMeta meta = lcd.getItemMeta();
             meta.setHideTooltip(true);
             lcd.setItemMeta(meta);
-            inventory.setItem(i, lcd);
+            inventory.setItem(DISPLAY_START + i, lcd);
         }
     }
 
