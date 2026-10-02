@@ -123,15 +123,11 @@ final class TresorListener implements Listener {
         boolean admin = p.hasPermission("tresor.admin");
 
         if (action == Action.LEFT_CLICK_BLOCK) {
-            // Abbauen ist nur kurz nach einer Code-Eingabe erlaubt
+            // Abbauen = Linksklick + richtiger Code (Mining selbst ist gesperrt, siehe onBreak)
             if (admin) return;
             e.setCancelled(true);
-            if (vault.pending() || vault.isUnlocked(p.getUniqueId())) {
-                if (!vault.pending()) e.setCancelled(false);
-                return;
-            }
-            if (p.getOpenInventory().getTopInventory().getHolder() == null
-                    || p.getOpenInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING) {
+            if (vault.pending()) return;
+            if (p.getOpenInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING) {
                 openKeypad(p, vault, KeypadHolder.Mode.BREAK);
             }
             return;
@@ -216,9 +212,10 @@ final class TresorListener implements Listener {
             vault.failures.remove(id);
             pad.done = true;
             if (pad.mode == KeypadHolder.Mode.BREAK) {
-                vault.unlock(id);
-                msg(p, "Code richtig. Du kannst den Tresor jetzt kurz abbauen.", NamedTextColor.GREEN);
-                plugin.getServer().getScheduler().runTask(plugin, () -> p.closeInventory());
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    p.closeInventory();
+                    if (manager.at(blockOf(vault)) == vault) dismantle(vault, p);
+                });
             } else {
                 plugin.getServer().getScheduler().runTask(plugin, () -> openVault(p, vault));
             }
@@ -267,22 +264,31 @@ final class TresorListener implements Listener {
         if (vault == null) return;
         Player p = e.getPlayer();
 
-        if (vault.pending()
-                || !(p.hasPermission("tresor.admin") || vault.isUnlocked(p.getUniqueId()))) {
-            e.setCancelled(true);
-            msg(p, "Nur wer den Code kennt, kann den Tresor abbauen. Linksklick auf den Tresor und Code eingeben!",
-                    NamedTextColor.RED);
+        // Normales Abbauen gibt es nicht: nur per Linksklick + Code (oder Admin)
+        e.setCancelled(true);
+        if (p.hasPermission("tresor.admin") && !vault.pending()) {
+            dismantle(vault, p);
             return;
         }
-
-        e.setDropItems(false);
-        e.setExpToDrop(0);
-        for (org.bukkit.entity.HumanEntity viewer : new ArrayList<>(
-                vault.inventory == null ? List.of() : vault.inventory.getViewers())) {
-            viewer.closeInventory();
+        if (!vault.pending()) {
+            msg(p, "Zum Abbauen: Linksklick auf den Tresor und den Code eingeben.", NamedTextColor.RED);
         }
+    }
 
-        Location drop = e.getBlock().getLocation().add(0.5, 0.5, 0.5);
+    private Block blockOf(TresorVault vault) {
+        String[] s = vault.blocks.get(0).split(";");
+        return plugin.getServer().getWorld(s[0]).getBlockAt(Integer.parseInt(s[1]), Integer.parseInt(s[2]),
+                Integer.parseInt(s[3]));
+    }
+
+    /** Baut den Tresor ab: Inhalt und Tresor-Item droppen wie bei einer Kiste. */
+    private void dismantle(TresorVault vault, Player p) {
+        if (vault.inventory != null) {
+            for (org.bukkit.entity.HumanEntity viewer : new ArrayList<>(vault.inventory.getViewers())) {
+                viewer.closeInventory();
+            }
+        }
+        Location drop = blockOf(vault).getLocation().add(0.5, 0.5, 0.5);
         for (ItemStack it : manager.contents(vault)) {
             if (it != null && !it.isEmpty()) drop.getWorld().dropItemNaturally(drop, it);
         }
@@ -291,17 +297,9 @@ final class TresorListener implements Listener {
         }
         manager.unregister(vault);
         displays.remove(vault);
-        for (String k : vault.blocks) {
-            if (!k.equals(VaultManager.key(e.getBlock()))) {
-                String[] s = k.split(";");
-                org.bukkit.World w = plugin.getServer().getWorld(s[0]);
-                if (w != null) {
-                    w.getBlockAt(Integer.parseInt(s[1]), Integer.parseInt(s[2]), Integer.parseInt(s[3]))
-                            .setType(Material.AIR, false);
-                }
-            }
-        }
+        removeBlocks(vault);
         manager.save();
+        drop.getWorld().playSound(drop, Sound.BLOCK_IRON_DOOR_OPEN, 1f, 0.7f);
     }
 
     // ------------------------------------------------------------ Schutz
